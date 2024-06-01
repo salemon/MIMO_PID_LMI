@@ -153,10 +153,10 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             # Kp0 = float(Kp)
             # Ki0 = float(Ki)
             # Kd0 = float(Kd)
-            t = float(t)
+            #t = float(t)
 
-        # if abs(t - t0) < 0.001:
-        #     break
+        if abs(t - t0) < 0.001:
+            break
 
     t0 = t
 
