@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from control import tf, dcgain, frd, pade, bode
 from auto_mimo_pid import auto_mimo_pid
-from mimo_pid_convert_auto import auto_mimo_pid_convert
+# from mimo_pid_convert_auto import auto_mimo_pid_convert
 #, mintegraltf
 
 # Define the transfer function matrix P
