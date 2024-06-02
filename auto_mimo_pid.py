@@ -9,7 +9,7 @@ import cvxpy as cp
 
 def makeLMI(Z, Z0, Y, p):
     """Constructs the LMI"""
-    # note this function I encountered a bug in the original code, where I use np.array instead of bmat
+    # note this function I encountered a bug when first implement it, where I use np.array instead of bmat
     # also the constraints should be real, so I added the cp.real() function
     # indentity matrix of size p
     P = np.eye(p)
@@ -157,7 +157,7 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             # Kd0 = float(Kd)
             #t = float(t)
 
-        if abs(t - t0) < 0.001:
+        if cp.abs(t - t0) <= 0.001:
             break
 
     t0 = t
