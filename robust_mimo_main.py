@@ -29,7 +29,7 @@ P = P * pade_estimation
 
 
 #
-N = 300
+N = 50
 w = np.logspace(-3, 3, N)
 P0 = dcgain(P)
 tau = 0.3

@@ -70,7 +70,7 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
     if 'maxInterp' in Options:  # specify max number of interpolations
         maxInterp = Options['maxInterp']
     else:
-        maxInterp = 10
+        maxInterp = 5
     
     print(f'Optimizaing a {m}x{p} PID controller')
     start_time = time.time()
@@ -140,16 +140,18 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             # LMI0 = np.real(LMI0)
             # LMI1 = np.real(LMI1)
             # LMI2 = np.real(LMI2)
-            # LMI3 = np.real(LMI3)    
+            # LMI3 = np.real(LMI3)
+
             constraints.extend([LMI0 >= margin4, LMI1 >= margin4, LMI2 >= margin4, LMI3 >= margin4])
-            objective = cp.Minimize(-t)
+            print(f'K={K},number of constraints={len(constraints)}, current evaluating frequency={wk}')    
+            objective = cp.Maximize(t)
             problem = cp.Problem(objective, constraints)
             result = problem.solve(solver=cp.SCS)
 
-            diagnostics = {
-                'status': problem.status,
-                'optimal_value': problem.value,
-                'optimal_var': t.value,}
+            # diagnostics = {
+            #     'status': problem.status,
+            #     'optimal_value': problem.value,
+            #     'optimal_var': t.value,}
             # Kp0 = float(Kp)
             # Ki0 = float(Ki)
             # Kd0 = float(Kd)
