@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import control as ct
 from control import tf, dcgain, frd, pade, bode, freqresp
-
 from scipy import signal
 import time
 import cvxpy as cp
@@ -181,33 +180,16 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
     # Ckp= np.zeros((m,p))
     # Cki = np.zeros((m,p))
     # Ckd = np.zeros((m,p))
-    num_coeffs = []
-    den_coeffs = []
-    for i in range(m):
-        for j in range(p):
-            # leave the numerator and denominator coefficients as empty list
-            num_coeffs.append([])
-            den_coeffs.append([])
-    # print(num_coeffs)
-    # print(den_coeffs)
-    C = np.zeros((m, p), dtype=object)
+    C = []
 
-    
-
-
-
-# Create the transfer function matrix
-    # C_tf_matrix = []
-
-
-# Create the transfer function using the extracted coefficients
+    C = tf([[[1], [1]], [[1], [1]]], 
+               [[[1], [1]], [[1], [1]]])
 
     print(f'C={C}')
     objval = np.linalg.norm(np.linalg.inv(P0[:, :, 0] @ Ki))  # spectra norm (largest singular value)
 
     # iteration = Iter - 1
     elapsed_time = time.time() - start_time
-
     print(f"Completed after {Iter} iterations!")
     print(f"Objective value ||(P(0)Ki)^-1||={objval}, t={t}.")
     print(f"Total time: {elapsed_time} seconds")

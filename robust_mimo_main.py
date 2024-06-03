@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import control as ct
-from control import tf, dcgain, frd, pade, bode
+from control import tf, dcgain, frd, pade, bode, minreal
 from auto_mimo_pid import auto_mimo_pid
 # from mimo_pid_convert_auto import auto_mimo_pid_convert
 #, mintegraltf
@@ -16,15 +16,15 @@ P = tf([[[12.8], [-18.9]], [[6.6], [-19.4]]],
                [[[16.7, 1], [21, 1]], [[10.9 ,1], [14.2, 1]]])
 # delay_p = tf([[[1], [0]], [[7], [3]]], 
 #         [[[1], [1]], [[1], [1]]])
-[num1, den1] = pade(1, 1)
-[num2, den2] = pade(3, 1)
-[num3, den3] = pade(7, 1)
-[num4, den4] = pade(3, 1)
-pade_estimation = tf([[num1, num2], [num3, num4]], 
-        [[den1, den2], [den3, den4]])
+# [num1, den1] = pade(1, 1)
+# [num2, den2] = pade(3, 1)
+# [num3, den3] = pade(7, 1)
+# [num4, den4] = pade(3, 1)
+# pade_estimation = tf([[num1, num2], [num3, num4]], 
+#         [[den1, den2], [den3, den4]])
 # print(P)
 # print(pade_estimation)
-P = P * pade_estimation
+# P = P * pade_estimation
 # print(P)  
 # bodeplot of the transfer function matrix P
 
@@ -48,14 +48,21 @@ Qmax = 3 / np.min(np.linalg.svd(dcgain(P))[1]) * np.ones(N)
 Option = {}
 
 # Auto-tune the MIMO PID controller
-C = auto_mimo_pid(P, w, Smax, Tmax, Qmax, tau, Option)
+C,objvv = auto_mimo_pid(P, w, Smax, Tmax, Qmax, tau, Option)
 #G = auto_mimo_pid_convert(P, w, Smax, Tmax, Qmax, tau, Option)
-# Analysis
-# simplify G
 
-sys_cl = ct.feedback(P * C,-1)
-L = frd(sys_cl, w)
-S = (np.eye(2) + sys_cl).inverse()
+# Compute the open-loop transfer function matrix 'L'
+L = P * C
+
+# Compute the closed-loop transfer function matrix 'T'
+sys_cl =  minreal(L/(np.eye(2)+L))
+
+S = 1/(np.eye(2)+L)
+
+
+
+# L = frd(sys_cl, w)
+# S =  1/( np.eye(2) + P * C)
 T = P * C * S
 Q = C * S
 
