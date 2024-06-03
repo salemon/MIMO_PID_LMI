@@ -23,16 +23,12 @@ To use the MIMO PID tuning code:
 5. Call the `auto_mimo_pid` function with the appropriate arguments to tune the MIMO PID controller.
 6. Analyze the resulting closed-loop transfer functions and plot the desired frequency responses.
 
-## Example
-
-An example usage of the MIMO PID tuning code is provided in the main code section of this repository. It demonstrates how to define the transfer function matrix, specify the desired specifications, and tune the MIMO PID controller for a specific example. Re
 
 ## Reference
 
 This implementation is based on the following paper:
 
-- Stephen Boyd, Martin Hast, and Karl Johan Åström. "MIMO PID tuning via iterated LMI restriction." International Journal of Robust and Nonlinear Control, 2016.
-
+["MIMO PID tuning via iterated LMI restriction" by Stephen Boyd, Martin Hast, and Karl Johan Åström.](https://web.stanford.edu/~boyd/papers/pdf/mimo_pid_tuning.pdf) 
 Please refer to the original paper for more details on the theoretical background and derivation of the method.
 
-This repository also make use of the matlab implementation of  [MIMO PID Tune](https://github.com/rubindan/mimoPIDtune)
+This repository also make use of the matlab implementation of  [MIMO PID Tune](https://github.com/rubindan/mimoPIDtune). However, please note that the current release of this repository may have some issues.
