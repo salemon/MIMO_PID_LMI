@@ -1,6 +1,6 @@
 # MIMO PID Tuning via Iterated LMI Restriction
 
-This repository contains an implementation of the Multiple-Input Multiple-Output (MIMO) Proportional-Integral-Derivative (PID) controller tuning method described in the paper: ["MIMO PID tuning via iterated LMI restriction" by Stephen Boyd, Martin Hast, and Karl Johan Åström.](https://web.stanford.edu/~boyd/papers/pdf/mimo_pid_tuning.pdf) 
+This repository contains an implementation of the Multiple-Input Multiple-Output (MIMO) Proportional-Integral-Derivative (PID) controller tuning method described in the paper: ["MIMO PID tuning via iterated LMI restriction" by Stephen Boyd, Martin Hast, and Karl Johan Åström.](https://web.stanford.edu/~boyd/papers/pdf/mimo_pid_tuning.pdf)
 
 ## Main Code
 
@@ -16,11 +16,11 @@ The main code for tuning the MIMO PID controller is provided in the file `auto_m
 
 To use the MIMO PID tuning code:
 
-1. Make sure you have the required dependencies installed (`numpy`, `matplotlib`, `control`).
-2. Import the `auto_mimo_pid` function from the `auto_mimo_pid` module.
-3. Define your transfer function matrix `P` using the `control` library.
-4. Specify the desired frequency range `w` and the specifications `Smax`, `Tmax`, and `Qmax`.
-5. Call the `auto_mimo_pid` function with the appropriate arguments to tune the MIMO PID controller.
+1. Make sure you have the required dependencies installed (`numpy`, `control`, `cvxpy`).
+2. Define your transfer function matrix `P` using the `control` library.
+3. Specify the desired frequency range `w` and the specifications for the sensitivity function `Smax`, complementary sensitivity function `Tmax`, and control effort `Qmax`.
+4. Call the `auto_mimo_pid` function with the appropriate arguments to tune the MIMO PID controller.
+5. Set your disered  number of datapoints `N` over evaluating frequency range, and iteration times `max_iter`.
 6. Analyze the resulting closed-loop transfer functions and plot the desired frequency responses.
 
 
