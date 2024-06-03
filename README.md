@@ -20,4 +20,5 @@ To use the MIMO PID tuning code:
 
 ["MIMO PID tuning via iterated LMI restriction" by Stephen Boyd, Martin Hast, and Karl Johan Åström.](https://web.stanford.edu/~boyd/papers/pdf/mimo_pid_tuning.pdf) 
 Please refer to the original paper for more details on the theoretical background and derivation of the method. -->
-This repository also make use of the matlab implementation of  [MIMO PID Tune](https://github.com/rubindan/mimoPIDtune). However, please note that the current release of this repository may have some issues.
+This repository also make use of the matlab implementation of  [MIMO PID Tune](https://github.com/rubindan/mimoPIDtune).
+Please note that the current release of this repository may have some issues.
