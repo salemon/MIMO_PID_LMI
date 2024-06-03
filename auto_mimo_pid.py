@@ -149,7 +149,7 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
 
             constraints.extend([LMI0 >= margin4, LMI1 >= margin4, LMI2 >= margin4, LMI3 >= margin4])
       
-            print(f'K={K},number of constraints={len(constraints)}, current evaluating frequency={wk}')    
+            print(f'K={K+1},number of constraints={len(constraints)}, current evaluating frequency={wk}')    
             objective = cp.Minimize(0)
             problem = cp.Problem(objective, constraints)
             result = problem.solve(solver=cp.SCS)
@@ -185,25 +185,21 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
     den_coeffs = []
     for i in range(m):
         for j in range(p):
-            num_coeffs.append([Kp[i, j]])
-            den_coeffs.append([1])
-            num_coeffs.append([Ki[i, j]])
-            den_coeffs.append([1, 0])
-            num_coeffs.append([Kd[i, j], 0])
-            den_coeffs.append([tau, 1])
+            # leave the numerator and denominator coefficients as empty list
+            num_coeffs.append([])
+            den_coeffs.append([])
+    # print(num_coeffs)
+    # print(den_coeffs)
+    C = np.zeros((m, p), dtype=object)
+
+    
+
+
 
 # Create the transfer function matrix
-    C_tf_matrix = []
-    C_tf_matrix = ct.tf(num_coeffs, den_coeffs)
-    # for i in range(m):
-    #     row = []
-    #     for j in range(p):
-    #         idx = i * p + j
-    #         # tf_ij = ct.tf(num_coeffs[idx], den_coeffs[idx])
-    #         # row.append(tf_ij)
-    #     C_tf_matrix.append(row)
-                      
-    C = C_tf_matrix
+    # C_tf_matrix = []
+
+
 # Create the transfer function using the extracted coefficients
 
     print(f'C={C}')
