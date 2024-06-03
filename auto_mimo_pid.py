@@ -45,6 +45,7 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
 
     l = p*m  # Number of plants
 
+
     N = len(w)
     # PW0 = np.zeros((p,m,l), dtype=complex)
     Pw0 =  freqresp(P, w[0]).fresp# frequency response at w[0], take  you can use the response_data attribute to extract the frequency response data.
@@ -147,11 +148,7 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             # LMI3 = np.real(LMI3)
 
             constraints.extend([LMI0 >= margin4, LMI1 >= margin4, LMI2 >= margin4, LMI3 >= margin4])
-            constraints.extend([
-            Kp0 == cp.real(Kp0),
-            Ki0 == cp.real(Ki0),
-            Kd0 == cp.real(Kd0)
-        ])
+      
             print(f'K={K},number of constraints={len(constraints)}, current evaluating frequency={wk}')    
             objective = cp.Minimize(0)
             problem = cp.Problem(objective, constraints)
@@ -178,42 +175,38 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
 
     # s = tf('s')
     # # construct the PID controller for mimo system
-    # C_Kp,C_Ki,C_Kd = np.zeros((m,p)), np.zeros((m,p)), np.zeros((m,p))
-    # for i in range(m):
-    #     for j in range(p):
-    #         C_Kp[i,j] = Kp[i,j]
-    #         C_Ki[i,j] = Ki[i,j] 
-    #         C_Kd[i,j] = Kd[i,j] 
-    
     # C = Kp + (1 / s) * Ki + s / (1 + tau * s) * Kd
-    s = ct.TransferFunction.s
-    C_Kp = Kp
-    C_Ki = Ki
-    C_Kd = Kd
-    # A M*P PID controller
-    mimo_tf_ki = []
-    mimo_tf_kd= []
-    mimo_tf_kp = []
+
+    # initialize Ckp, Cki, Ckd
+    # Ckp= np.zeros((m,p))
+    # Cki = np.zeros((m,p))
+    # Ckd = np.zeros((m,p))
+    num_coeffs = []
+    den_coeffs = []
     for i in range(m):
-        row_kp = []
-        row_ki = []
-        row_kd = []
         for j in range(p):
-            mimo_kp = tf([1], [1])
-            mimo_ki = tf([1,0], [1])
-            mimo_kd = tf([1], [tau,1])
-            row_kp.append(mimo_kp)
-            row_ki.append(mimo_ki)
-            row_kd.append(mimo_kd)
-        mimo_tf_kp.append(row_kp)
-        mimo_tf_ki.append(row_ki)
-        mimo_tf_kd.append(row_kd)
-    C_tf = Kp * mimo_tf_kp + Ki * mimo_tf_ki + Kd * mimo_tf_kd
+            num_coeffs.append([Kp[i, j]])
+            den_coeffs.append([1])
+            num_coeffs.append([Ki[i, j]])
+            den_coeffs.append([1, 0])
+            num_coeffs.append([Kd[i, j], 0])
+            den_coeffs.append([tau, 1])
 
-
+# Create the transfer function matrix
+    C_tf_matrix = []
+    C_tf_matrix = ct.tf(num_coeffs, den_coeffs)
+    # for i in range(m):
+    #     row = []
+    #     for j in range(p):
+    #         idx = i * p + j
+    #         # tf_ij = ct.tf(num_coeffs[idx], den_coeffs[idx])
+    #         # row.append(tf_ij)
+    #     C_tf_matrix.append(row)
+                      
+    C = C_tf_matrix
 # Create the transfer function using the extracted coefficients
 
-    print(f'C={C_tf}')
+    print(f'C={C}')
     objval = np.linalg.norm(np.linalg.inv(P0[:, :, 0] @ Ki))  # spectra norm (largest singular value)
 
     # iteration = Iter - 1
@@ -223,4 +216,4 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
     print(f"Objective value ||(P(0)Ki)^-1||={objval}, t={t}.")
     print(f"Total time: {elapsed_time} seconds")
                 
-    return C_tf, objval
+    return C, objval

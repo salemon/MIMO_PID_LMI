@@ -22,8 +22,8 @@ P = tf([[[12.8], [-18.9]], [[6.6], [-19.4]]],
 [num4, den4] = pade(3, 1)
 pade_estimation = tf([[num1, num2], [num3, num4]], 
         [[den1, den2], [den3, den4]])
-print(P)
-print(pade_estimation)
+# print(P)
+# print(pade_estimation)
 P = P * pade_estimation
 # print(P)  
 # bodeplot of the transfer function matrix P
@@ -48,22 +48,16 @@ Qmax = 3 / np.min(np.linalg.svd(dcgain(P))[1]) * np.ones(N)
 Option = {}
 
 # Auto-tune the MIMO PID controller
-# G = mintegraltf(P, w, Smax, Tmax, Qmax, tau, Option)
-G = auto_mimo_pid(P, w, Smax, Tmax, Qmax, tau, Option)
+C = auto_mimo_pid(P, w, Smax, Tmax, Qmax, tau, Option)
 #G = auto_mimo_pid_convert(P, w, Smax, Tmax, Qmax, tau, Option)
 # Analysis
 # simplify G
-num = [[tf.num[0][0] for tf in row] for row in G[0]]
-den = [[tf.den[0] for tf in row] for row in G[0]]
 
-# Create the MIMO transfer function matrix manually
-mimo_sys = [[tf(num[i][j], den[i][j]) for j in range(len(num[i]))] for i in range(len(num))]
-
-sys = ct.feedback(P * mimo_sys)
-L = frd(sys, w)
-S = (np.eye(2) + sys).inverse()
-T = P * G * S
-Q = G * S
+sys_cl = ct.feedback(P * C,-1)
+L = frd(sys_cl, w)
+S = (np.eye(2) + sys_cl).inverse()
+T = P * C * S
+Q = C * S
 
 # Plotting
 plt.figure(1)
