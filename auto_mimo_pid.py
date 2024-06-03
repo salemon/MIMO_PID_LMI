@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import control
+import control as ct
 from control import tf, dcgain, frd, pade, bode, freqresp
+
 from scipy import signal
 import time
 import cvxpy as cp
@@ -70,7 +71,7 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
     if 'maxInterp' in Options:  # specify max number of interpolations
         maxInterp = Options['maxInterp']
     else:
-        maxInterp = 5
+        maxInterp = 2
     
     print(f'Optimizaing a {m}x{p} PID controller')
     start_time = time.time()
@@ -84,9 +85,10 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             Ki = cp.Variable(Options['Structure']['Ki'].shape, PSD=True)
             Kd = cp.Variable(Options['Structure']['Kd'].shape, PSD=True)
         else:
-            Kp = cp.Variable((m,p),symmetric=True )
+            Kp = cp.Variable((m,p), symmetric=True)
             Ki = cp.Variable((m,p), symmetric=True)
             Kd = cp.Variable((m,p), symmetric=True)
+
         if 'Sign' in Options:
             constraints = [
                 cp.multiply(Options['Sign']['Kp'], Kp) > 0,
@@ -100,9 +102,11 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
                 # Ki > 0,
                 # Kd > 0
             ]
+            
+
          #loop over all plants 
-        Plist = P.returnScipySignalLTI() 
-        icase = 0
+        # Plist = P.returnScipySignalLTI() 
+        # icase = 0
         # for outer_list in Plist:
         #     for tf in outer_list:
         #         num = tf.num
@@ -143,8 +147,13 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             # LMI3 = np.real(LMI3)
 
             constraints.extend([LMI0 >= margin4, LMI1 >= margin4, LMI2 >= margin4, LMI3 >= margin4])
+            constraints.extend([
+            Kp0 == cp.real(Kp0),
+            Ki0 == cp.real(Ki0),
+            Kd0 == cp.real(Kd0)
+        ])
             print(f'K={K},number of constraints={len(constraints)}, current evaluating frequency={wk}')    
-            objective = cp.Maximize(t)
+            objective = cp.Minimize(0)
             problem = cp.Problem(objective, constraints)
             result = problem.solve(solver=cp.SCS)
 
@@ -157,19 +166,55 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             # Kd0 = float(Kd)
             #t = float(t)
 
-        if cp.abs(t - t0) <= 0.001:
-            break
+        # if cp.abs(t - t0) <= 0.001:
+        #     break
 
     t0 = t
 
     Kp = Kp0
     Ki = Ki0
     Kd = Kd0
+    print(f'Kp={Kp}, Ki={Ki}, Kd={Kd}')
 
-    s = tf('s')
-    C = Kp + (1 / s) * Ki + s / (1 + tau * s) * Kd
+    # s = tf('s')
+    # # construct the PID controller for mimo system
+    # C_Kp,C_Ki,C_Kd = np.zeros((m,p)), np.zeros((m,p)), np.zeros((m,p))
+    # for i in range(m):
+    #     for j in range(p):
+    #         C_Kp[i,j] = Kp[i,j]
+    #         C_Ki[i,j] = Ki[i,j] 
+    #         C_Kd[i,j] = Kd[i,j] 
+    
+    # C = Kp + (1 / s) * Ki + s / (1 + tau * s) * Kd
+    s = ct.TransferFunction.s
+    C_Kp = Kp
+    C_Ki = Ki
+    C_Kd = Kd
+    # A M*P PID controller
+    mimo_tf_ki = []
+    mimo_tf_kd= []
+    mimo_tf_kp = []
+    for i in range(m):
+        row_kp = []
+        row_ki = []
+        row_kd = []
+        for j in range(p):
+            mimo_kp = tf([1], [1])
+            mimo_ki = tf([1,0], [1])
+            mimo_kd = tf([1], [tau,1])
+            row_kp.append(mimo_kp)
+            row_ki.append(mimo_ki)
+            row_kd.append(mimo_kd)
+        mimo_tf_kp.append(row_kp)
+        mimo_tf_ki.append(row_ki)
+        mimo_tf_kd.append(row_kd)
+    C_tf = Kp * mimo_tf_kp + Ki * mimo_tf_ki + Kd * mimo_tf_kd
 
-    objval = np.norm(np.linalg.inv(P0[:, :, 0] @ Ki))  # spectra norm (largest singular value)
+
+# Create the transfer function using the extracted coefficients
+
+    print(f'C={C_tf}')
+    objval = np.linalg.norm(np.linalg.inv(P0[:, :, 0] @ Ki))  # spectra norm (largest singular value)
 
     # iteration = Iter - 1
     elapsed_time = time.time() - start_time
@@ -178,4 +223,4 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
     print(f"Objective value ||(P(0)Ki)^-1||={objval}, t={t}.")
     print(f"Total time: {elapsed_time} seconds")
                 
-    return C, objval
+    return C_tf, objval

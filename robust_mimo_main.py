@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import control as ct
 from control import tf, dcgain, frd, pade, bode
 from auto_mimo_pid import auto_mimo_pid
 # from mimo_pid_convert_auto import auto_mimo_pid_convert
@@ -28,9 +29,9 @@ P = P * pade_estimation
 # bodeplot of the transfer function matrix P
 
 
-#
-N = 50
-w = np.logspace(-3, 3, N)
+#defining the frequency range, N is the number of points
+N = 10
+w = np.logspace(-2, 2, N)
 P0 = dcgain(P)
 tau = 0.3
 
@@ -51,8 +52,16 @@ Option = {}
 G = auto_mimo_pid(P, w, Smax, Tmax, Qmax, tau, Option)
 #G = auto_mimo_pid_convert(P, w, Smax, Tmax, Qmax, tau, Option)
 # Analysis
-L = frd(P * G, w)
-S = (np.eye(2) + P * G).inverse()
+# simplify G
+num = [[tf.num[0][0] for tf in row] for row in G[0]]
+den = [[tf.den[0] for tf in row] for row in G[0]]
+
+# Create the MIMO transfer function matrix manually
+mimo_sys = [[tf(num[i][j], den[i][j]) for j in range(len(num[i]))] for i in range(len(num))]
+
+sys = ct.feedback(P * mimo_sys)
+L = frd(sys, w)
+S = (np.eye(2) + sys).inverse()
 T = P * G * S
 Q = G * S
 

@@ -1,6 +1,6 @@
 # MIMO PID Tuning via Iterated LMI Restriction
 
-This repository contains an implementation of the Multiple-Input Multiple-Output (MIMO) Proportional-Integral-Derivative (PID) controller tuning method described in the paper: "MIMO PID tuning via iterated LMI restriction" by Stephen Boyd, Martin Hast, and Karl Johan Åström.
+This repository contains an implementation of the Multiple-Input Multiple-Output (MIMO) Proportional-Integral-Derivative (PID) controller tuning method described in the paper: ["MIMO PID tuning via iterated LMI restriction" by Stephen Boyd, Martin Hast, and Karl Johan Åström.](https://web.stanford.edu/~boyd/papers/pdf/mimo_pid_tuning.pdf) 
 
 ## Main Code
 
@@ -25,7 +25,7 @@ To use the MIMO PID tuning code:
 
 ## Example
 
-An example usage of the MIMO PID tuning code is provided in the main code section of this repository. It demonstrates how to define the transfer function matrix, specify the desired specifications, and tune the MIMO PID controller for a specific example.
+An example usage of the MIMO PID tuning code is provided in the main code section of this repository. It demonstrates how to define the transfer function matrix, specify the desired specifications, and tune the MIMO PID controller for a specific example. Re
 
 ## Reference
 
