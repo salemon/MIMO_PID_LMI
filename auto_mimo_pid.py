@@ -149,7 +149,7 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             constraints.extend([LMI0 >= margin4, LMI1 >= margin4, LMI2 >= margin4, LMI3 >= margin4])
       
             print(f'K={K+1},number of constraints={len(constraints)}, current evaluating frequency={wk}')    
-            objective = cp.Minimize(0)
+            objective = cp.Minimize(-t)
             problem = cp.Problem(objective, constraints)
             result = problem.solve(solver=cp.SCS)
 
@@ -161,8 +161,10 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             # Ki0 = float(Ki)
             # Kd0 = float(Kd)
             #t = float(t)
-
-        # if cp.abs(t - t0) <= 0.001:
+        # eplison = 1e-3
+        # tt = cp.abs(t.value)
+        # print(f't={tt}')
+        # if tt < eplison:
         #     break
 
     t0 = t
