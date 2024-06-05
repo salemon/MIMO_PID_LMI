@@ -61,10 +61,12 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
         Kd = Options['Initial']['Kd']
 
     else:
-        eplison = 1e-3
+        eplison = 0.01
         #eplison = w[0] / 10
         Kp0 = np.zeros((m,p))
-        Ki0 = eplison * np.linalg.pinv(P0[:,:,0])
+        Ki0 = eplison * np.linalg.pinv(P0[:,:,0],rcond=1e-15)
+        Ki0 = np.real(Ki0.reshape(2, 2))
+
         Kd0 = np.zeros((m,p))
     t0 = 0
 
@@ -151,8 +153,8 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
             print(f'K={K+1},number of constraints={len(constraints)}, current evaluating frequency={wk}')    
             objective = cp.Minimize(-t)
             problem = cp.Problem(objective, constraints)
-            result = problem.solve(solver=cp.SCS)
-
+            # result = problem.solve(solver=cp.SCS)
+            result = problem.solve(solver=cp.OSQP)
             # diagnostics = {
             #     'status': problem.status,
             #     'optimal_value': problem.value,
@@ -182,13 +184,31 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
     # Ckp= np.zeros((m,p))
     # Cki = np.zeros((m,p))
     # Ckd = np.zeros((m,p))
-    C = []
+    # initialize Ckp, Cki, Ckd
+    Ckp = np.zeros((m, p))
+    Cki = np.zeros((m, p))
+    Ckd = np.zeros((m, p))
 
-    C = tf([[[1], [1]], [[1], [1]]], 
-               [[[1], [1]], [[1], [1]]])
+    # restoring the PID controller
+    for i in range(m):
+        for j in range(p):
+            Ckp[i, j] = Kp[i, j]
+            Cki[i, j] = Ki[i, j]
+            Ckd[i, j] = Kd[i, j]
 
+    C11_num = [Ckp[0, 0], Cki[0, 0], Ckd[0, 0]]
+    C11_den = [1, tau]
+    C12_num = [Ckp[0, 1], Cki[0, 1], Ckd[0, 1]]
+    C12_den = [1, tau]
+    C21_num = [Ckp[1, 0], Cki[1, 0], Ckd[1, 0]]
+    C21_den = [1, tau]
+    C22_num = [Ckp[1, 1], Cki[1, 1], Ckd[1, 1]]
+    C22_den = [1, tau]
+
+    C = tf([[C11_num, C12_num], [C21_num, C22_num]],
+        [[C11_den, C12_den], [C21_den, C22_den]])  
     print(f'C={C}')
-    objval = np.linalg.norm(np.linalg.inv(P0[:, :, 0] @ Ki))  # spectra norm (largest singular value)
+    objval = np.linalg.norm(np.linalg.inv(P0[:, :, 0] @ Ki),ord=2)  # spectra norm (largest singular value)
 
     # iteration = Iter - 1
     elapsed_time = time.time() - start_time

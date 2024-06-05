@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import control as ct
-from control import tf, dcgain, frd, pade, bode, minreal
+from control import tf, dcgain, frd, pade, bode, minreal,ss, frequency_response, singular_values_plot
 from auto_mimo_pid import auto_mimo_pid
 # from mimo_pid_convert_auto import auto_mimo_pid_convert
 #, mintegraltf
@@ -16,22 +16,22 @@ P = tf([[[12.8], [-18.9]], [[6.6], [-19.4]]],
                [[[16.7, 1], [21, 1]], [[10.9 ,1], [14.2, 1]]])
 # delay_p = tf([[[1], [0]], [[7], [3]]], 
 #         [[[1], [1]], [[1], [1]]])
-# [num1, den1] = pade(1, 1)
-# [num2, den2] = pade(3, 1)
-# [num3, den3] = pade(7, 1)
-# [num4, den4] = pade(3, 1)
-# pade_estimation = tf([[num1, num2], [num3, num4]], 
-#         [[den1, den2], [den3, den4]])
-# print(P)
-# print(pade_estimation)
-# P = P * pade_estimation
+[num1, den1] = pade(1, 1)
+[num2, den2] = pade(3, 1)
+[num3, den3] = pade(7, 1)
+[num4, den4] = pade(3, 1)
+pade_estimation = tf([[num1, num2], [num3, num4]], 
+        [[den1, den2], [den3, den4]])
+print(P)
+print(pade_estimation)
+P = P * pade_estimation
 # print(P)  
 # bodeplot of the transfer function matrix P
 
 
 #defining the frequency range, N is the number of points
-N = 10
-w = np.logspace(-2, 2, N)
+N = 20
+w = np.logspace(-3, 3, N)
 P0 = dcgain(P)
 tau = 0.3
 
@@ -53,43 +53,48 @@ C,objvv = auto_mimo_pid(P, w, Smax, Tmax, Qmax, tau, Option)
 
 # Compute the open-loop transfer function matrix 'L'
 L = P * C
+m, p = P(0).shape  # Number of inputs and outputs
 
-# Compute the closed-loop transfer function matrix 'T'
-sys_cl =  minreal(L/(np.eye(2)+L))
+I_ss = ss([], [], [], np.eye(p))
+# Extract the state-space matrices from 'L'
+L_ss = ss(L)
 
-S = 1/(np.eye(2)+L)
+# Compute the sensitivity function 'S'
+S = minreal(ss(I_ss.A, I_ss.B, I_ss.C, I_ss.D + np.linalg.pinv(I_ss.D + L_ss.D)))
 
+# Extract the state-space matrices from 'S'
+S_ss = ss(S)
 
+# Compute the complementary sensitivity function 'T'
+T = minreal(ss(L_ss.A, L_ss.B, L_ss.C, np.dot(L_ss.D, S_ss.D)))
+CC= ss(C)
+# Compute the input sensitivity function 'Q'
+Q = minreal(ss(CC.A, CC.B, CC.C, np.dot(CC.D, S_ss.D)))
 
-# L = frd(sys_cl, w)
-# S =  1/( np.eye(2) + P * C)
-T = P * C * S
-Q = C * S
 
 # Plotting
 plt.figure(1)
-plt.loglog(w, np.maximum.reduce(np.abs(S)), label='S')
+singular_values_plot(S, w, plot=plt)
+plt.semilogx(w, 20*np.log10(Smax), 'r')
 plt.title('Sensitivity Function')
-plt.loglog(w, 20*np.log10(Smax), 'r', label='Smax')
 plt.xlabel('Frequency [rad/s]')
 plt.ylabel('Magnitude [dB]')
-plt.legend()
+plt.legend(['Singular Values', 'Smax'])
 
 plt.figure(2)
-plt.loglog(w, np.maximum.reduce(np.abs(T)), label='T')
+singular_values_plot(T, w, plot=plt)
+plt.semilogx(w, 20*np.log10(Tmax), 'r')
 plt.title('Complementary Sensitivity Function')
-plt.loglog(w, 20*np.log10(Tmax), 'r', label='Tmax')
 plt.xlabel('Frequency [rad/s]')
 plt.ylabel('Magnitude [dB]')
-
-plt.legend()
+plt.legend(['Singular Values', 'Tmax'])
 
 plt.figure(3)
-plt.loglog(w, np.maximum.reduce(np.abs(Q)), label='Q')
-plt.loglog(w, 20*np.log10(Qmax), 'r', label='Qmax')
+singular_values_plot(Q, w, plot=plt)
+plt.semilogx(w, 20*np.log10(Qmax), 'r')
 plt.title('Control Effort')
 plt.xlabel('Frequency [rad/s]')
 plt.ylabel('Magnitude [dB]')
-plt.legend()
+plt.legend(['Singular Values', 'Qmax'])
 
 plt.show()
