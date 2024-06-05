@@ -61,8 +61,8 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
         Kd = Options['Initial']['Kd']
 
     else:
-        eplison = 0.01
-        #eplison = w[0] / 10
+        eplison = 0.1
+        # eplison = w[0] / 10
         Kp0 = np.zeros((m,p))
         Ki0 = eplison * np.linalg.pinv(P0[:,:,0],rcond=1e-15)
         Ki0 = np.real(Ki0.reshape(2, 2))
@@ -73,7 +73,7 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
     if 'maxInterp' in Options:  # specify max number of interpolations
         maxInterp = Options['maxInterp']
     else:
-        maxInterp = 2
+        maxInterp = 5
     
     print(f'Optimizaing a {m}x{p} PID controller')
     start_time = time.time()
@@ -190,23 +190,28 @@ def auto_mimo_pid(P,w,Smax,Tmax,Qmax,tau,Options ):
     Ckd = np.zeros((m, p))
 
     # restoring the PID controller
+# initialize Ckp, Cki, Ckd
+
+
+# restoring the PID controller
     for i in range(m):
         for j in range(p):
             Ckp[i, j] = Kp[i, j]
             Cki[i, j] = Ki[i, j]
             Ckd[i, j] = Kd[i, j]
 
-    C11_num = [Ckp[0, 0], Cki[0, 0], Ckd[0, 0]]
-    C11_den = [1, tau]
-    C12_num = [Ckp[0, 1], Cki[0, 1], Ckd[0, 1]]
-    C12_den = [1, tau]
-    C21_num = [Ckp[1, 0], Cki[1, 0], Ckd[1, 0]]
-    C21_den = [1, tau]
-    C22_num = [Ckp[1, 1], Cki[1, 1], Ckd[1, 1]]
-    C22_den = [1, tau]
+    # Create empty lists to store the numerator and denominator arrays
+    C_num = [[[] for _ in range(p)] for _ in range(m)]
+    C_den = [[[] for _ in range(p)] for _ in range(m)]
 
-    C = tf([[C11_num, C12_num], [C21_num, C22_num]],
-        [[C11_den, C12_den], [C21_den, C22_den]])  
+    # Populate the numerator and denominator arrays
+    for i in range(m):
+        for j in range(p):
+            C_num[i][j] = [Ckp[i, j], Cki[i, j], Ckd[i, j]]
+            C_den[i][j] = [1, tau]
+
+    # Create the transfer function matrix C using tf()
+    C = tf(C_num, C_den)
     print(f'C={C}')
     objval = np.linalg.norm(np.linalg.inv(P0[:, :, 0] @ Ki),ord=2)  # spectra norm (largest singular value)
 
